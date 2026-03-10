@@ -16,6 +16,12 @@
 
 ## 環境需求
 
+> **建議作業系統：Ubuntu（Linux）或 Windows 上的 WSL2（Ubuntu）**
+> 
+> 本專案使用 `bash` 腳本、Linux 路徑慣例（`.venv/bin/...`），以及 Sionna / TensorFlow，這些在 Linux 環境下相容性最佳。  
+> Windows 原生（PowerShell）需要額外調整，**不建議直接使用**。
+
+- **OS**：Ubuntu 20.04+ / WSL2 Ubuntu（Windows 用戶）
 - Python **3.12+**
 - Node.js **18+**（建議 v22）
 - `cloudflared`（選用，只有要用公網才需要）
