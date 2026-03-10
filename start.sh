@@ -83,16 +83,30 @@ if $USE_TUNNEL; then
     info "🌐 啟動 Cloudflare Tunnel (simworld2)..."
     # 讀取 .env 裡的 token
     TOKEN=$(grep '^CLOUDFLARED_TOKEN=' "$SCRIPT_DIR/.env" 2>/dev/null | cut -d= -f2-)
-    if [[ -n "$TOKEN" ]]; then
-      "$CF_BIN" tunnel run --token "$TOKEN" --protocol http2 \
-        > "$LOG_DIR/tunnel.log" 2>&1 &
-    else
-      "$CF_BIN" tunnel run simworld2 --protocol http2 \
-        > "$LOG_DIR/tunnel.log" 2>&1 &
-    fi
+
+    # 用 retry wrapper 啟動 cloudflared：失敗或退出時自動重啟（最多 20 次）
+    _run_tunnel() {
+      local retries=0
+      while (( retries < 20 )); do
+        if [[ -n "$TOKEN" ]]; then
+          "$CF_BIN" tunnel run --token "$TOKEN" \
+            --no-autoupdate \
+            >> "$LOG_DIR/tunnel.log" 2>&1
+        else
+          "$CF_BIN" tunnel run simworld2 \
+            --no-autoupdate \
+            >> "$LOG_DIR/tunnel.log" 2>&1
+        fi
+        retries=$(( retries + 1 ))
+        warn "Tunnel 中斷，第 ${retries} 次重啟 (等 5s)..."
+        sleep 5
+      done
+      error "Tunnel 重啟超過 20 次，放棄"
+    }
+    _run_tunnel &
     PIDS+=($!)
     TUNNEL_STARTED=true
-    info "   Tunnel PID: ${PIDS[-1]}  log: .logs/tunnel.log"
+    info "   Tunnel 已在背景啟動（自動重試）  log: .logs/tunnel.log"
   else
     warn "找不到 cloudflared，略過 Tunnel"
     warn "安裝方法：curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o ~/.local/bin/cloudflared && chmod +x ~/.local/bin/cloudflared"
