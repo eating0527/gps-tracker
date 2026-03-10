@@ -76,6 +76,10 @@ if $USE_TUNNEL; then
            ~/bin/cloudflared ~/.local/bin/cloudflared 2>/dev/null | head -1)"
 
   if [[ -x "$CF_BIN" ]]; then
+    # Apply WSL network fixes if applicable to reduce DNS timeouts and QUIC buffer issues
+    if command -v bash >/dev/null 2>&1 && [[ -x "$(pwd)/scripts/wsl_network_fix.sh" ]]; then
+      (bash "$(pwd)/scripts/wsl_network_fix.sh") || true
+    fi
     info "🌐 啟動 Cloudflare Tunnel (simworld2)..."
     # 讀取 .env 裡的 token
     TOKEN=$(grep '^CLOUDFLARED_TOKEN=' "$SCRIPT_DIR/.env" 2>/dev/null | cut -d= -f2-)
