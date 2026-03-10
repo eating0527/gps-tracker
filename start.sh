@@ -84,10 +84,10 @@ if $USE_TUNNEL; then
     # 讀取 .env 裡的 token
     TOKEN=$(grep '^CLOUDFLARED_TOKEN=' "$SCRIPT_DIR/.env" 2>/dev/null | cut -d= -f2-)
     if [[ -n "$TOKEN" ]]; then
-      "$CF_BIN" tunnel run --token "$TOKEN" \
+      "$CF_BIN" tunnel run --token "$TOKEN" --protocol http2 \
         > "$LOG_DIR/tunnel.log" 2>&1 &
     else
-      "$CF_BIN" tunnel run simworld2 \
+      "$CF_BIN" tunnel run simworld2 --protocol http2 \
         > "$LOG_DIR/tunnel.log" 2>&1 &
     fi
     PIDS+=($!)
